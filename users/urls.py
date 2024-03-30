@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework import routers
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenVerifyView,
@@ -6,9 +7,16 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView
 )
 
-from users.views import CreateUserView, ManageUserView, LogoutView
+from users.views import (
+    CreateUserView,
+    ManageUserView,
+    UserProfilesView
+)
 
 app_name = "users"
+
+router = routers.DefaultRouter()
+router.register("profiles", UserProfilesView)
 
 urlpatterns = [
     path("register/", CreateUserView.as_view(), name="create"),
@@ -16,5 +24,6 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token-verify"),
     path("me/", ManageUserView.as_view(), name="manage"),
-    path("logout/", TokenBlacklistView.as_view(), name="logout")
+    path("logout/", TokenBlacklistView.as_view(), name="logout"),
+    path("", include(router.urls)),
 ]

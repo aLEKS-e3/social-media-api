@@ -31,5 +31,21 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class LogoutSerializer(serializers.Serializer):
-    refresh_token = serializers.CharField(max_length=255)
+class UserListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "username", "profile_image",)
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "id",
+            "email",
+            "username",
+            "profile_image",
+            "is_active",
+        )
