@@ -1,11 +1,13 @@
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, generics, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import IsAuthenticated
 
-from users.serializers import UserSerializer, LogoutSerializer
+from users.models import Follow, User
+from users.serializers import UserSerializer, UserListSerializer
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -20,16 +22,39 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class LogoutView(APIView):
-    serializer_class = LogoutSerializer
+class UserProfilesView(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+    queryset = User.objects.all()
+    serializer_class = UserListSerializer
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
-        try:
-            refresh_token = request.data["refresh_token"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="follow"
+    )
+    def follow_user(self, request, pk=None):
+        user_to_follow = self.get_object()
 
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
+        if user_to_follow == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.following.filter(id=pk).exists():
+            Follow.objects.create(
+                follower=request.user, following=user_to_follow
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="unfollow"
+    )
+    def unfollow_user(self, request, pk=None):
+        get_object_or_404(get_user_model(), id=pk)
+        request.user.following.filter(id=pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

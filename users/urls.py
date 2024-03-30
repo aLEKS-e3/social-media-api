@@ -16,7 +16,7 @@ from users.views import (
 app_name = "users"
 
 router = routers.DefaultRouter()
-router.register("profiles", UserProfilesView)
+router.register("profiles", UserProfilesView, basename="profiles")
 
 urlpatterns = [
     path("register/", CreateUserView.as_view(), name="create"),
