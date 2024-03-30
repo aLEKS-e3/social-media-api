@@ -22,6 +22,10 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+def get_user(pk):
+    return get_object_or_404(get_user_model(), pk=pk)
+
+
 class UserProfilesView(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -55,7 +59,7 @@ class UserProfilesView(
         url_path="unfollow"
     )
     def unfollow_user(self, request, pk=None):
-        get_object_or_404(get_user_model(), id=pk)
+        get_user(pk)
         request.user.following.filter(id=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -65,9 +69,10 @@ class UserProfilesView(
         url_path="followers"
     )
     def get_followers(self, request, pk=None):
-        user = get_object_or_404(get_user_model(), id=pk)
+        user = get_user(pk)
         serializer = self.get_serializer(
-            data=list(user.followers.all()), many=True
+            data=list(user.followers.all()),
+            many=True
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -79,9 +84,10 @@ class UserProfilesView(
         url_path="following"
     )
     def get_following(self, request, pk=None):
-        user = get_object_or_404(get_user_model(), id=pk)
+        user = get_user(pk)
         serializer = self.get_serializer(
-            data=list(user.following.all()), many=True
+            data=list(user.following.all()),
+            many=True
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
