@@ -31,31 +31,5 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class AuthTokenSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={"input_type": "password"}
-    )
-
-    def validate(self, data):
-        email = data.get("email")
-        password = data.get("password")
-
-        if email and password:
-            user = authenticate(email=email, password=password)
-
-            if not user:
-                message = _("Unable to log in with provided credentials.")
-                raise serializers.ValidationError(
-                    message, code="authorization"
-                )
-        else:
-            message = _("Your must enter 'email' and 'password'.")
-            raise serializers.ValidationError(
-                message, code="authorization"
-            )
-
-        data["user"] = user
-        return data
+class LogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField(max_length=255)
