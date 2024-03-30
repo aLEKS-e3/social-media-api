@@ -37,7 +37,7 @@ class UserProfilesView(
         url_path="follow"
     )
     def follow_user(self, request, pk=None):
-        user_to_follow = self.get_object()
+        user_to_follow = get_object_or_404(get_user_model(), id=pk)
 
         if user_to_follow == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -58,3 +58,31 @@ class UserProfilesView(
         get_object_or_404(get_user_model(), id=pk)
         request.user.following.filter(id=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="followers"
+    )
+    def get_followers(self, request, pk=None):
+        user = get_object_or_404(get_user_model(), id=pk)
+        serializer = self.get_serializer(
+            data=list(user.followers.all()), many=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="following"
+    )
+    def get_following(self, request, pk=None):
+        user = get_object_or_404(get_user_model(), id=pk)
+        serializer = self.get_serializer(
+            data=list(user.following.all()), many=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
