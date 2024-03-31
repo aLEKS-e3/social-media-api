@@ -11,9 +11,18 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ("id", "image", "content", "created_at",)
 
 
-class PostViewSerializer(serializers.ModelSerializer):
+class PostListSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    all_likes = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Post
+        fields = ("id", "image", "content", "user", "created_at", "all_likes",)
+
+
+class PostDetailSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
 
     class Meta:
         model = Post
-        fields = ("id", "image", "content", "user", "created_at",)
+        fields = ("id", "image", "content", "user", "created_at", "likes",)
