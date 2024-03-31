@@ -18,7 +18,11 @@ class PostViewSet(
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
+        content = self.request.query_params.get("content")
         queryset = self.queryset
+
+        if content:
+            queryset = queryset.filter(content__icontains=content)
 
         if self.action == "list":
             queryset = queryset.filter(
