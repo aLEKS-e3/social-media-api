@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
@@ -15,6 +16,17 @@ class PostViewSet(
     queryset = Post.objects.select_related("user")
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if self.action == "list":
+            queryset = queryset.filter(
+                Q(user__id=self.request.user.id)
+                | Q(user__id__in=self.request.user.following.values("following_id"))
+            )
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:

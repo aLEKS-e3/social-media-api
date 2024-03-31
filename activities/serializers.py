@@ -8,7 +8,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ("id", "image", "content",)
+        fields = ("id", "image", "content", "created_at",)
 
 
 class PostViewSerializer(serializers.ModelSerializer):
@@ -16,4 +16,4 @@ class PostViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ("id", "image", "content", "user",)
+        fields = ("id", "image", "content", "user", "created_at",)
