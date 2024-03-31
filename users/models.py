@@ -42,7 +42,7 @@ def profile_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
     filename = f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
 
-    return os.path.join("uploads/users/", filename)
+    return os.path.join("uploads/profiles/", filename)
 
 
 class User(AbstractUser):
@@ -60,6 +60,9 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    def __str__(self):
+        return self.username
+
 
 class Follow(models.Model):
     follower = models.ForeignKey(
@@ -73,3 +76,6 @@ class Follow(models.Model):
         on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.follower} follows {self.following}"
