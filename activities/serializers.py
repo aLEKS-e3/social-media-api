@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers
 
 from activities.models import Post, Comment
@@ -5,10 +7,25 @@ from users.serializers import UserDetailSerializer
 
 
 class PostSerializer(serializers.ModelSerializer):
+    schedule_time = serializers.DateTimeField(write_only=True, allow_null=True)
+
+    class Meta:
+        model = Post
+        fields = ("id", "image", "content", "created_at", "schedule_time",)
+
+
+class PostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
         fields = ("id", "image", "content", "created_at",)
+
+    def toJSON(self):
+        return json.dumps(
+            self,
+            default=lambda o: o.__dict__,
+            sort_keys=True,
+            indent=4)
 
 
 class PostListSerializer(serializers.ModelSerializer):

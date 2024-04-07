@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Q, Count
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -9,8 +10,9 @@ from activities.serializers import (
     PostSerializer,
     PostListSerializer,
     PostDetailSerializer,
-    CommentSerializer,
+    CommentSerializer, PostCreateSerializer,
 )
+from activities.tasks import create_scheduled_post
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -56,8 +58,37 @@ class PostViewSet(viewsets.ModelViewSet):
 
         return self.serializer_class
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        user_id = request.user.id
+        user = get_user_model().objects.get(pk=user_id)
+
+        data = {
+            "image": request.FILES.get("image"),
+            "content": request.data.get("content"),
+        }
+
+        serializer = PostCreateSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        schedule_time = request.data.get("schedule_time")
+
+        if schedule_time:
+            create_scheduled_post.apply_async(
+                args=[
+                    data["content"],
+                    data["image"],
+                    user_id
+                ],
+                eta=schedule_time
+            )
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                "Post is scheduled",
+                status=status.HTTP_200_OK,
+                headers=headers
+            )
+
+        serializer.save(user=user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(methods=["POST"], detail=True)
     def like(self, request, pk=None):
