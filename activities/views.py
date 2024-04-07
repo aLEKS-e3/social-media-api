@@ -1,11 +1,10 @@
 from django.db.models import Q, Count
-from rest_framework import mixins, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 
 from activities.models import Post, PostLikes
-from activities.permissions import IsOwnerOrReadOnly
+from activities.permissions import IsPostOwnerOrReadOnly
 from activities.serializers import (
     PostSerializer,
     PostListSerializer,
@@ -14,13 +13,7 @@ from activities.serializers import (
 )
 
 
-class PostViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    GenericViewSet
-):
+class PostViewSet(viewsets.ModelViewSet):
     queryset = (
         Post.objects.select_related("user")
         .annotate(
@@ -29,7 +22,7 @@ class PostViewSet(
         )
     )
     serializer_class = PostSerializer
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsPostOwnerOrReadOnly,)
 
     def get_queryset(self):
         queryset = self.queryset

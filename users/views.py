@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, generics, status
+from rest_framework import generics, status, viewsets
+
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 
+from activities.permissions import IsOwnerOrReadOnly
 from users.models import Follow, User
 from users.serializers import UserSerializer, UserListSerializer
 
@@ -26,14 +27,10 @@ def get_user(pk):
     return get_object_or_404(get_user_model(), pk=pk)
 
 
-class UserProfilesView(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class UserProfilesView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsOwnerOrReadOnly,)
 
     @action(
         methods=["POST"],
