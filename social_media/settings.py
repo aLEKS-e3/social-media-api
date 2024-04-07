@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "activities",
     "users",
     "drf_spectacular",
+
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
