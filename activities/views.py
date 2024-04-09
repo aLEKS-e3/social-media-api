@@ -10,7 +10,7 @@ from activities.serializers import (
     PostSerializer,
     PostListSerializer,
     PostDetailSerializer,
-    CommentSerializer, PostCreateSerializer,
+    CommentSerializer,
 )
 from activities.tasks import create_scheduled_post
 
@@ -62,20 +62,15 @@ class PostViewSet(viewsets.ModelViewSet):
         user_id = request.user.id
         user = get_user_model().objects.get(pk=user_id)
 
-        data = {
-            "image": request.FILES.get("image"),
-            "content": request.data.get("content"),
-        }
-
-        serializer = PostCreateSerializer(data=data)
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         schedule_time = request.data.get("schedule_time")
 
         if schedule_time:
             create_scheduled_post.apply_async(
                 args=[
-                    data["content"],
-                    data["image"],
+                    request.data.get("content"),
+                    request.FILES.get("image"),
                     user_id
                 ],
                 eta=schedule_time

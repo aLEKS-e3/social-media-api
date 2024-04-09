@@ -6,18 +6,13 @@ from users.serializers import UserDetailSerializer
 
 
 class PostSerializer(serializers.ModelSerializer):
-    schedule_time = serializers.DateTimeField(write_only=True, allow_null=True)
+    schedule_time = serializers.DateTimeField(
+        write_only=True, required=False
+    )
 
     class Meta:
         model = Post
         fields = ("id", "image", "content", "created_at", "schedule_time",)
-
-
-class PostCreateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Post
-        fields = ("id", "image", "content", "created_at",)
 
 
 class PostListSerializer(serializers.ModelSerializer):
