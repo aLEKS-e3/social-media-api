@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "activities",
     "users",
     "drf_spectacular",
-
+    "django_filters",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -82,6 +82,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "social_media.wsgi.application"
 
 REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ),
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",

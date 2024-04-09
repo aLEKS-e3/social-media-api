@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, viewsets
 
 from rest_framework.decorators import action
@@ -7,7 +5,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from activities.permissions import IsOwnerOrReadOnly
-from activities.serializers import FollowingListSerializer, FollowerListSerializer
+from activities.serializers import (
+    FollowingListSerializer,
+    FollowerListSerializer
+)
+from users.filters import UserFilter
 from users.models import Follow, User
 from users.serializers import UserSerializer, UserListSerializer
 
@@ -28,18 +30,16 @@ class UserProfilesView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = (IsOwnerOrReadOnly,)
-
-    @staticmethod
-    def get_user(pk):
-        return get_object_or_404(get_user_model(), pk=pk)
+    filterset_class = UserFilter
 
     @action(
         methods=["POST"],
         detail=True,
-        url_path="follow"
+        url_path="follow",
+        permission_classes=(IsAuthenticated,)
     )
     def follow_user(self, request, pk=None):
-        user_to_follow = self.get_user(pk)
+        user_to_follow = self.get_object()
 
         if user_to_follow == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -53,10 +53,11 @@ class UserProfilesView(viewsets.ModelViewSet):
     @action(
         methods=["DELETE"],
         detail=True,
-        url_path="unfollow"
+        url_path="unfollow",
+        permission_classes=(IsAuthenticated,)
     )
     def unfollow_user(self, request, pk=None):
-        user_to_unfollow = self.get_user(pk)
+        user_to_unfollow = self.self.get_object()
         Follow.objects.get(
             follower=request.user, following=user_to_unfollow
         ).delete()
@@ -68,7 +69,7 @@ class UserProfilesView(viewsets.ModelViewSet):
         url_path="followers"
     )
     def get_followers(self, request, pk=None):
-        user = self.get_user(pk)
+        user = self.get_object()
         serializer = FollowerListSerializer(
             user.followers.all(), many=True
         )
@@ -81,7 +82,7 @@ class UserProfilesView(viewsets.ModelViewSet):
         url_path="following"
     )
     def get_following(self, request, pk=None):
-        user = self.get_user(pk)
+        user = self.get_object()
         following = user.following.all()
 
         serializer = FollowingListSerializer(following, many=True)
