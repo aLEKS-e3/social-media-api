@@ -80,7 +80,7 @@ class FollowingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fields = ("id", "following_username", "following_profile_picture",)
+        fields = ("following_username", "following_profile_picture",)
 
 
 class FollowerListSerializer(serializers.ModelSerializer):
@@ -93,4 +93,4 @@ class FollowerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fields = ("id", "follower_username", "follower_profile_picture",)
+        fields = ("follower_username", "follower_profile_picture",)

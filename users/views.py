@@ -56,8 +56,10 @@ class UserProfilesView(viewsets.ModelViewSet):
         url_path="unfollow"
     )
     def unfollow_user(self, request, pk=None):
-        # self.get_user(pk)
-        # request.user.following.filter(id=pk).delete()
+        user_to_unfollow = self.get_user(pk)
+        Follow.objects.get(
+            follower=request.user, following=user_to_unfollow
+        ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
