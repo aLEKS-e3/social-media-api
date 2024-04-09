@@ -1,8 +1,7 @@
-import json
-
 from rest_framework import serializers
 
 from activities.models import Post, Comment
+from users.models import Follow
 from users.serializers import UserDetailSerializer
 
 
@@ -19,13 +18,6 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("id", "image", "content", "created_at",)
-
-    def toJSON(self):
-        return json.dumps(
-            self,
-            default=lambda o: o.__dict__,
-            sort_keys=True,
-            indent=4)
 
 
 class PostListSerializer(serializers.ModelSerializer):
@@ -76,3 +68,29 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "likes",
             "comments",
         )
+
+
+class FollowingListSerializer(serializers.ModelSerializer):
+    following_username = serializers.CharField(
+        source="following.username", read_only=True
+    )
+    following_profile_picture = serializers.CharField(
+        source="following.profile_image", read_only=True
+    )
+
+    class Meta:
+        model = Follow
+        fields = ("id", "following_username", "following_profile_picture",)
+
+
+class FollowerListSerializer(serializers.ModelSerializer):
+    follower_username = serializers.CharField(
+        source="follower.username", read_only=True
+    )
+    follower_profile_picture = serializers.CharField(
+        source="follower.profile_image", read_only=True
+    )
+
+    class Meta:
+        model = Follow
+        fields = ("id", "follower_username", "follower_profile_picture",)

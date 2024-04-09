@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from activities.permissions import IsOwnerOrReadOnly
+from activities.serializers import FollowingListSerializer, FollowerListSerializer
 from users.models import Follow, User
 from users.serializers import UserSerializer, UserListSerializer
 
@@ -23,14 +24,14 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-def get_user(pk):
-    return get_object_or_404(get_user_model(), pk=pk)
-
-
 class UserProfilesView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = (IsOwnerOrReadOnly,)
+
+    @staticmethod
+    def get_user(pk):
+        return get_object_or_404(get_user_model(), pk=pk)
 
     @action(
         methods=["POST"],
@@ -38,26 +39,25 @@ class UserProfilesView(viewsets.ModelViewSet):
         url_path="follow"
     )
     def follow_user(self, request, pk=None):
-        user_to_follow = get_object_or_404(get_user_model(), id=pk)
+        user_to_follow = self.get_user(pk)
 
         if user_to_follow == request.user:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if not request.user.following.filter(id=pk).exists():
-            Follow.objects.create(
-                follower=request.user, following=user_to_follow
-            )
+        Follow.objects.get_or_create(
+            follower=request.user, following=user_to_follow
+        )
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_201_CREATED)
 
     @action(
-        methods=["POST"],
+        methods=["DELETE"],
         detail=True,
         url_path="unfollow"
     )
     def unfollow_user(self, request, pk=None):
-        get_user(pk)
-        request.user.following.filter(id=pk).delete()
+        # self.get_user(pk)
+        # request.user.following.filter(id=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -66,13 +66,11 @@ class UserProfilesView(viewsets.ModelViewSet):
         url_path="followers"
     )
     def get_followers(self, request, pk=None):
-        user = get_user(pk)
-        serializer = self.get_serializer(
-            data=list(user.followers.all()),
-            many=True
+        user = self.get_user(pk)
+        serializer = FollowerListSerializer(
+            user.followers.all(), many=True
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
@@ -81,13 +79,9 @@ class UserProfilesView(viewsets.ModelViewSet):
         url_path="following"
     )
     def get_following(self, request, pk=None):
-        user = get_user(pk)
+        user = self.get_user(pk)
         following = user.following.all()
 
-        serializer = self.get_serializer(
-            following, data=request.data
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer = FollowingListSerializer(following, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
