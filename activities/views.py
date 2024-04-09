@@ -16,13 +16,7 @@ from activities.tasks import create_scheduled_post
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = (
-        Post.objects.select_related("user")
-        .annotate(
-            all_likes=Count("likes"),
-            all_comments=Count("comments")
-        )
-    )
+    queryset = Post.objects.select_related("user")
     serializer_class = PostSerializer
     permission_classes = (IsPostOwnerOrReadOnly,)
 
@@ -38,7 +32,10 @@ class PostViewSet(viewsets.ModelViewSet):
                 Q(user__id=self.request.user.id)
                 | Q(user__id__in=self.request.user.following.values(
                     "following_id"
-                ))
+                    ))
+            ).annotate(
+                all_likes=Count("likes"),
+                all_comments=Count("comments")
             )
 
         if self.action == "retrieve":
