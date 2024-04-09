@@ -1,4 +1,4 @@
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, status, viewsets, filters
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -30,7 +30,8 @@ class UserProfilesView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = (IsOwnerOrReadOnly,)
-    filterset_class = UserFilter
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["username"]
 
     @action(
         methods=["POST"],
