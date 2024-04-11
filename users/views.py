@@ -9,7 +9,6 @@ from activities.serializers import (
     FollowingListSerializer,
     FollowerListSerializer
 )
-from users.filters import UserFilter
 from users.models import Follow, User
 from users.serializers import UserSerializer, UserListSerializer
 
